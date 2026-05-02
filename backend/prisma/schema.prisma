@@ -1,0 +1,56 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model State {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  districts District[]
+}
+
+model District {
+  id      String  @id @default(uuid())
+  name    String  @unique
+  stateId String
+  state   State   @relation(fields: [stateId], references: [id])
+  mandals Mandal[]
+}
+
+model Mandal {
+  id         String   @id @default(uuid())
+  name       String
+  districtId String
+  district   District @relation(fields: [districtId], references: [id])
+  villages   Village[]
+}
+
+model Village {
+  id       String @id @default(uuid())
+  name     String
+  mandalId String
+  mandal   Mandal @relation(fields: [mandalId], references: [id])
+  votes    Vote[]
+}
+
+model Party {
+  id    String @id @default(uuid())
+  name  String @unique
+  color String
+  votes Vote[]
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  villageId String
+  partyId   String
+  voterId   String   @unique // For idempotent submissions
+  createdAt DateTime @default(now())
+
+  village Village @relation(fields: [villageId], references: [id])
+  party   Party   @relation(fields: [partyId], references: [id])
+}
